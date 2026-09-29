@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>발표 순서 사다리 게임</title>
+<style>
+:root{--ink:#17233d;--muted:#78839a;--paper:#f7f8fc;--blue:#536dfe;--line:#cbd3e5;--pink:#ff6b91;--teal:#11b8a5}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#e9edff 0,transparent 48%),var(--paper);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+main{max-width:1120px;margin:auto;padding:34px 22px 52px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.badge{font-size:12px;font-weight:800;letter-spacing:.08em;color:#536dfe;background:#e9edff;padding:8px 12px;border-radius:99px}
+h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.04em;margin:10px 0 8px}.sub{color:var(--muted);margin:0}.card{background:#fff;border:1px solid #e7eaf2;border-radius:22px;box-shadow:0 14px 40px #25315a0b}
+.toolbar{display:flex;gap:10px;align-items:center}.tool{border:1px solid #e1e5ef;background:white;color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:750;cursor:pointer}.tool.primary{background:var(--ink);color:white;border-color:var(--ink)}
+.game{padding:18px 18px 20px;margin-top:26px;overflow:hidden}.legend{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 14px;color:var(--muted);font-size:13px}.status{font-weight:750;color:var(--blue)}.board{width:100%;overflow-x:auto}.board svg{display:block;width:100%;min-width:580px;height:auto;aspect-ratio:960/430}.rail{stroke:var(--line);stroke-width:4;stroke-linecap:round}.rung{stroke:#bac4da;stroke-width:4;stroke-linecap:round}.rail-label{font:700 13px system-ui;fill:#53617b}.bottom-label{font:800 13px system-ui;fill:#53617b}.path{fill:none;stroke:currentColor;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:0;filter:drop-shadow(0 2px 3px #ff6b9140)}.path.active{opacity:1;animation:draw 2s linear forwards}.dot{fill:var(--pink);stroke:white;stroke-width:3;opacity:0}.dot.active{opacity:1;animation:pop .3s ease}.teamNodes{fill:#fff;stroke:#dfe4ef;stroke-width:1.5}.selectedNode{fill:#fff0f4;stroke:#ff6b91;stroke-width:2.5}.resultNodes{fill:#f3f5fa;stroke:#e4e8f1;stroke-width:1.5}.@keyframes draw{to{stroke-dashoffset:0}}@keyframes pop{from{transform:scale(.5)}to{transform:scale(1)}}
+.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:17px}.team{border:1px solid #e5e8f0;background:#fff;border-radius:15px;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;text-align:left;cursor:pointer;transition:.15s}.team:hover:not(:disabled){border-color:#aab7ff;transform:translateY(-2px);box-shadow:0 6px 18px #536dfe18}.team:disabled{cursor:default}.team .name{font-weight:800}.team .hint{font-size:12px;color:var(--muted);margin-top:3px}.team .arrow{font-size:18px;color:#aab2c4}.team.done{background:#f7f8fc}.team.done .arrow{color:var(--teal)}.team.done .hint{color:var(--teal);font-weight:750}
+.results{display:none;margin-top:18px;padding:17px 20px;background:#f7f8fc;border-radius:16px}.results.show{display:block}.results-title{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:10px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:white;border:1px solid #e5e9f2;border-radius:10px;padding:8px 11px;font-size:13px;font-weight:750}.chip b{color:var(--blue)}
+.foot{font-size:12px;color:#98a1b2;text-align:center;margin-top:17px}
+@media(max-width:650px){main{padding:24px 14px 36px}.top{align-items:flex-start}.toolbar{flex-direction:column}.tool{font-size:12px;padding:9px}.teams{grid-template-columns:repeat(2,1fr);gap:9px}.team{padding:12px}.legend{align-items:flex-start;gap:8px;flex-direction:column}.game{padding:14px}}
+
+body{background:radial-gradient(ellipse at 9% 4%,#e3e9ff 0,transparent 34%),radial-gradient(ellipse at 94% 22%,#f1e5ff 0,transparent 28%),linear-gradient(145deg,#f8faff,#f4f6fc 55%,#f9f7ff)}
+main{max-width:1160px;padding-top:46px}
+.badge{color:#5143c7;background:linear-gradient(120deg,#ebeaff,#f2eaff);border:1px solid #dedaff;box-shadow:0 3px 10px #635bdb12}
+h1{background:linear-gradient(100deg,#182445 8%,#5143c7 75%,#8d56d9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:16px;line-height:1.6}
+.card{border:1px solid #e3e7f3;box-shadow:0 20px 56px #39477616,0 3px 10px #39477608}
+.game{position:relative;padding:24px 24px 26px;margin-top:30px;border-radius:26px;overflow:hidden}
+.game:before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#5b5ce2,#8c5be8,#f087b2,#56b9d8)}
+.legend{padding:5px 5px 18px;color:#6d7892;font-size:14px}
+.legend>span:first-child:before{content:"✦";color:#7963df;margin-right:8px;font-size:16px}
+.status{background:#f0efff;color:#5548c7;border:1px solid #e1ddff;border-radius:999px;padding:8px 13px;box-shadow:0 3px 10px #6256d20c}
+.board{border:1px solid #e9ecf5;border-radius:20px;padding:9px;background:linear-gradient(145deg,#fbfcff,#f7f8ff);box-shadow:inset 0 1px 3px #6574a00c}
+.board svg{filter:drop-shadow(0 3px 4px #30416c08)}
+.rail{stroke:#c6cee3;stroke-width:4.5}.rung{stroke:#adb9d7;stroke-width:5}
+.teamNodes{stroke:#8175dc;stroke-width:2.4;filter:drop-shadow(0 3px 5px #5d53bb24);transition:fill .15s,stroke .15s}
+.teamNodes:hover{fill:#f0edff;stroke:#5d4ed1;stroke-width:3}
+.resultNodes{fill:#fff;stroke:#a8b4cf;stroke-width:2;filter:drop-shadow(0 3px 5px #30416c15)}
+.rail-label{fill:#443b9d;font-weight:800;font-size:13px}.bottom-label{fill:#364260;font-weight:850;font-size:12px}
+.tool{border-color:#dfe4f0;background:#fff;box-shadow:0 4px 12px #3947760d;transition:transform .15s,box-shadow .15s,border-color .15s}
+.tool:hover{transform:translateY(-2px);border-color:#b5b1ed;box-shadow:0 8px 18px #39477616}
+.tool.primary{background:linear-gradient(120deg,#343d9f,#6355d8);border-color:transparent;box-shadow:0 7px 16px #5143c733}
+.results{background:linear-gradient(135deg,#f3f2ff,#f8faff);border:1px solid #e5e2ff;border-radius:18px}
+.chip{border-color:#e1e4f2;box-shadow:0 3px 8px #3947760a}
+.foot{color:#8791a8;margin-top:20px}
+@media(max-width:650px){main{padding-top:27px}.game{padding:17px 14px 19px;border-radius:20px}.board{padding:5px;border-radius:15px}.sub{font-size:14px}.legend{font-size:12px}}
+.top{position:relative;overflow:hidden;gap:26px;padding:30px 32px;border:1px solid #343d78;border-radius:28px;background:linear-gradient(120deg,#151e42 0%,#28336f 58%,#493b91 100%);box-shadow:0 18px 44px #252b601f;margin-bottom:26px}
+.top:before,.top:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.top:before{width:300px;height:300px;right:115px;top:-205px;border:1px solid #ffffff16;box-shadow:0 0 0 28px #ffffff08,0 0 0 58px #ffffff06}
+.top:after{width:150px;height:150px;right:-38px;bottom:-104px;background:linear-gradient(135deg,#f286bb55,#7365e955);filter:blur(1px)}
+.top>div{position:relative;z-index:1}
+.top h1{color:#fff;background:none;-webkit-text-fill-color:#fff;margin-top:15px;font-size:clamp(32px,5vw,48px);letter-spacing:-.045em}
+.top .badge{color:#d8d6ff;background:#ffffff12;border-color:#ffffff22;box-shadow:none}
+.top .sub{color:#c7cce3}
+.top .toolbar{flex-shrink:0}
+.top .tool{padding:12px 16px;border-color:#ffffff32;background:#ffffff12;color:#f8f8ff;box-shadow:none;backdrop-filter:blur(8px)}
+.top .tool:hover{background:#ffffff20;border-color:#ffffff70}
+.top .tool.primary{background:linear-gradient(120deg,#9b8dff,#7265e9);border-color:transparent;color:white;box-shadow:0 7px 18px #12183955}
+.game{margin-top:0}
+.board{background:radial-gradient(ellipse at 50% 0%,#f0efff 0,transparent 58%),linear-gradient(145deg,#fbfcff,#f7f8ff)}
+@media(max-width:650px){.top{padding:22px 19px;gap:18px;flex-direction:column}.top .toolbar{flex-direction:row;align-self:stretch}.top .toolbar .tool{flex:1}.top h1{font-size:32px}}
+
+.count-control{display:flex;align-items:center;gap:9px;color:#e2e4f8;font-size:13px;font-weight:800;white-space:nowrap}
+.count-control select{appearance:none;border:1px solid #ffffff38;border-radius:11px;background:#ffffff12;color:#fff;padding:11px 13px;font:inherit;cursor:pointer;outline:none}
+.count-control select option{color:#17233d;background:#fff}
+@media(max-width:650px){.top .toolbar{flex-wrap:wrap}.count-control{flex:1}.count-control select{flex:1}}
+.name-settings{margin:0 0 22px;padding:16px 20px;border:1px solid #e3e7f3;border-radius:18px;background:#ffffffd9;box-shadow:0 8px 24px #3947760c}
+.name-settings summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;font-weight:850;color:#29345e}
+.name-settings summary::-webkit-details-marker{display:none}
+.name-settings summary:after{content:"⌄";margin-left:auto;color:#7265e9;font-size:20px}
+.name-settings[open] summary:after{content:"⌃"}
+.name-settings summary small{font-size:12px;font-weight:600;color:#8b94a9}
+.name-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-top:16px}
+.name-field{display:grid;gap:6px;color:#6d7892;font-size:12px;font-weight:750}
+.name-field input{width:100%;padding:10px 11px;border:1px solid #e1e5ef;border-radius:10px;background:#fbfcff;color:#202b4a;font:700 14px system-ui;outline:none}
+.name-field input:focus{border-color:#8275e5;box-shadow:0 0 0 3px #8275e51c}
+.name-settings p{margin:12px 0 0;color:#939bb0;font-size:12px}
+@media(max-width:650px){.name-settings{padding:14px}.name-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.name-settings summary{flex-wrap:wrap}.name-settings summary small{order:3;width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><span class="badge">TEAM PRESENTATION · <span id="countBadge">8 TEAMS</span></span><h1>발표 순서 사다리 게임</h1><p class="sub">사다리 그리기를 눌러 중간선을 만든 뒤, 팀을 선택하세요.</p></div><div class="toolbar"><label class="count-control">팀 수 <select id="teamCount" aria-label="팀 수 설정"></select></label><button class="tool primary" id="reset">사다리 그리기</button><button class="tool" id="all" disabled>전체 결과 보기</button></div></div>
+  <details class="name-settings" id="nameSettings" open><summary><span>팀 이름 설정</span><small id="nameSettingsHint">현재 팀 이름을 입력하세요</small></summary><div class="name-grid" id="nameGrid"></div><p>이름 변경 후 사다리를 다시 그려주세요.</p></details>  <section class="card game">
+    <div class="legend"><span>위에서 시작해 가로선을 만나면 옆으로 이동해요.</span><span class="status" id="status">사다리 위 팀 이름을 눌러 시작하세요</span></div>
+    <div class="board"><svg id="ladder" viewBox="0 0 960 430" role="img" aria-label="발표 순서 사다리"></svg></div>
+    
+    <div class="results" id="results"><div class="results-title">발표 순서 모아보기</div><div class="chips" id="chips"></div></div>
+  </section>
+  <div class="foot">각 팀은 한 번씩 선택할 수 있어요 · 새 사다리를 누르면 순서가 다시 정해집니다</div>
+</main>
+<script>
+let N=8;const svg=document.querySelector('#ladder'), statusEl=document.querySelector('#status');
+const colors=['#ef476f','#3a86ff','#06a77d','#9b5de5','#f77f00','#00a6a6','#d63384','#6c757d'];
+const W=960, yStart=62, yEnd=350, left=78, right=882;let gap=(right-left)/(N-1);
+let rungs=[], results=[], chosen=new Set(), busy=false, ladderReady=false, drawToken=0;
+const x=i=>left+i*gap;
+const pathColor=i=>colors[i%colors.length];
+const defaultTeamName=i=>'팀 '+String.fromCharCode(65+i);
+let teamNames=Array.from({length:12},(_,i)=>defaultTeamName(i));
+const teamName=i=>teamNames[i]||defaultTeamName(i);
+const nodeRadius=i=>Math.min(gap*.46,Math.max(18,teamName(i).length*6.5+8));
+const nodeFontSize=i=>Math.max(6,Math.min(13,(nodeRadius(i)*2-10)/Math.max(1,teamName(i).length)));
+const rungTop=()=>yStart+Math.max(25,...Array.from({length:N},(_,i)=>nodeRadius(i)+8));
+const rungBottom=()=>yEnd-22;
+function makeRungs(){
+  const rows=13, arr=[], firstY=rungTop(), lastY=rungBottom();
+  // Non-adjacent rungs on a row keep the ladder easy to follow.
+  for(let row=0;row<rows;row++){
+    let cols=Array.from({length:N-1},(_,i)=>i).filter(()=>Math.random()<.42);
+    for(let j=cols.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[cols[j],cols[k]]=[cols[k],cols[j]]}
+    const used=new Set();
+    for(const c of cols){if(!used.has(c)&&!used.has(c+1)){arr.push({c,y:firstY+row*((lastY-firstY)/(rows-1))});used.add(c);used.add(c+1)}}
+  }
+  return arr;
+}
+function trace(start){
+  let col=start, points=[[x(col),yStart]];
+  const rows=[...new Set(rungs.map(r=>r.y))].sort((a,b)=>a-b);
+  for(const y of rows){points.push([x(col),y]);const hit=rungs.find(r=>r.y===y&&(r.c===col||r.c+1===col));if(hit){col=hit.c===col?col+1:col-1;points.push([x(col),y])}}
+  points.push([x(col),yEnd]);return {col,points};
+}
+function refreshSetup(message){
+  drawToken++;ladderReady=false;busy=false;rungs=[];results=[];chosen.clear();
+  document.querySelector('#reset').textContent='사다리 그리기';document.querySelector('#all').disabled=true;
+  document.querySelector('#countBadge').textContent=N+' TEAMS';document.querySelector('#ladder').setAttribute('aria-label',N+'팀 발표 순서 사다리');
+  document.querySelector('#results').classList.remove('show');document.querySelector('#chips').innerHTML='';
+  statusEl.textContent=message;showFrame();
+}
+function renderNameInputs(){
+  const grid=document.querySelector('#nameGrid');grid.innerHTML='';
+  for(let i=0;i<N;i++){
+    const label=document.createElement('label');label.className='name-field';
+    const caption=document.createElement('span');caption.textContent=defaultTeamName(i)+' 이름';
+    const input=document.createElement('input');input.type='text';input.maxLength=8;input.value=teamName(i);input.setAttribute('aria-label',defaultTeamName(i)+' 이름');
+    input.addEventListener('change',()=>{teamNames[i]=input.value.trim()||defaultTeamName(i);input.value=teamNames[i];refreshSetup('팀 이름을 바꿨어요. 사다리 그리기를 눌러주세요')});
+    label.append(caption,input);grid.append(label);
+  }
+}
+function showFrame(){
+  svg.innerHTML='';
+  for(let i=0;i<N;i++){
+    const rail=document.createElementNS('http://www.w3.org/2000/svg','line');rail.setAttribute('x1',x(i));rail.setAttribute('x2',x(i));rail.setAttribute('y1',yStart);rail.setAttribute('y2',yEnd);rail.setAttribute('class','rail');svg.append(rail);
+    const start=document.createElementNS('http://www.w3.org/2000/svg','circle');start.setAttribute('cx',x(i));start.setAttribute('cy',yStart);start.setAttribute('r',nodeRadius(i));start.setAttribute('class','teamNodes');start.style.cursor='pointer';start.onclick=()=>reveal(i);svg.append(start);
+    const name=document.createElementNS('http://www.w3.org/2000/svg','text');name.setAttribute('x',x(i));name.setAttribute('y',yStart+4);name.setAttribute('text-anchor','middle');name.setAttribute('class','rail-label');name.textContent=teamName(i);name.setAttribute('font-size',nodeFontSize(i));name.style.cursor='pointer';name.onclick=()=>reveal(i);svg.append(name);
+    const end=document.createElementNS('http://www.w3.org/2000/svg','circle');end.setAttribute('cx',x(i));end.setAttribute('cy',yEnd);end.setAttribute('r',17);end.setAttribute('class','resultNodes');svg.append(end);
+    const order=document.createElementNS('http://www.w3.org/2000/svg','text');order.setAttribute('x',x(i));order.setAttribute('y',yEnd+4);order.setAttribute('text-anchor','middle');order.setAttribute('class','bottom-label');order.textContent=(i+1)+'번째';svg.append(order);
+  }
+}
+async function render(){
+  const token=++drawToken;ladderReady=false;busy=true;document.querySelector('#nameSettings').open=false;
+  document.querySelector('#reset').textContent='새 사다리';document.querySelector('#all').disabled=true;document.querySelector('#ladder').setAttribute('aria-label',N+'팀 발표 순서 사다리');
+  rungs=makeRungs();results=Array.from({length:N},(_,i)=>trace(i).col);chosen.clear();
+  document.querySelector('#results').classList.remove('show');statusEl.textContent='사다리를 그리고 있어요…';
+  svg.innerHTML="";
+  const lines=[];
+  for(let i=0;i<N;i++){
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',x(i));line.setAttribute('x2',x(i));line.setAttribute('y1',yStart);line.setAttribute('y2',yEnd);line.setAttribute('class','rail');svg.append(line);
+  }
+  for(const r of rungs){const line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',x(r.c));line.setAttribute('x2',x(r.c+1));line.setAttribute('y1',r.y);line.setAttribute('y2',r.y);line.setAttribute('class','rung');svg.append(line);lines.push({el:line,len:gap,delay:Math.round((r.y-yStart)/(yEnd-yStart)*1050)});}
+  for(let i=0;i<N;i++){
+    const a=document.createElementNS('http://www.w3.org/2000/svg','circle');a.setAttribute('cx',x(i));a.setAttribute('cy',yStart);a.setAttribute('r',nodeRadius(i));a.setAttribute('class','teamNodes');svg.append(a);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',x(i));t.setAttribute('y',yStart+4);t.setAttribute('text-anchor','middle');t.setAttribute('class','rail-label');t.textContent=teamName(i);t.setAttribute('font-size',nodeFontSize(i));t.style.cursor='pointer';t.onclick=()=>reveal(i);a.style.cursor='pointer';a.onclick=()=>reveal(i);svg.append(t);
+    const b=document.createElementNS('http://www.w3.org/2000/svg','circle');b.setAttribute('cx',x(i));b.setAttribute('cy',yEnd);b.setAttribute('r',17);b.setAttribute('class','resultNodes');svg.append(b);
+    const bt=document.createElementNS('http://www.w3.org/2000/svg','text');bt.setAttribute('x',x(i));bt.setAttribute('y',yEnd+4);bt.setAttribute('text-anchor','middle');bt.setAttribute('class','bottom-label');bt.textContent=(i+1)+'번째';svg.append(bt);
+  }
+  await new Promise(requestAnimationFrame);
+  const animations=lines.map(item=>{item.el.style.strokeDasharray=item.len+' '+item.len;item.el.style.strokeDashoffset=item.len;return item.el.animate([{strokeDashoffset:item.len},{strokeDashoffset:0}],{duration:1250,easing:'ease-out',delay:item.delay,fill:'forwards'})});
+  await Promise.all(animations.map(a=>a.finished));
+  if(token!==drawToken)return;
+  lines.forEach(item=>item.el.style.strokeDashoffset="0");ladderReady=true;busy=false;
+  statusEl.textContent='사다리 완성! 위에서 팀 이름을 선택하세요';document.querySelector('#all').disabled=false;
+  document.querySelector('#chips').innerHTML='';
+}
+async function reveal(i){
+  if(!ladderReady)return;
+  if(busy||chosen.has(i))return;busy=true;chosen.add(i);
+  const tr=trace(i), p=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+  p.setAttribute('points',tr.points.map(a=>a.join(',')).join(' '));p.setAttribute('class','path');p.style.color=pathColor(i);svg.append(p);
+  const length=p.getTotalLength();p.style.strokeDasharray=length+' '+length;p.style.strokeDashoffset=length;p.style.opacity='1';
+  statusEl.textContent=teamName(i)+'의 경로를 따라가고 있어요…';
+  const animation=p.animate([{strokeDashoffset:length},{strokeDashoffset:0}],{duration:2200,easing:'linear'});await animation.finished;p.style.strokeDashoffset='0';
+  const label=document.createElementNS('http://www.w3.org/2000/svg','text');label.setAttribute('x',x(tr.col));label.setAttribute('y',yEnd+40);label.setAttribute('text-anchor','middle');label.setAttribute('font-size','12');label.setAttribute('font-weight','800');label.setAttribute('fill',pathColor(i));label.textContent=teamName(i)+' · '+(results[i]+1)+'번째';svg.append(label);
+  statusEl.textContent=teamName(i)+' · 발표 '+(results[i]+1)+'번째';
+  if(chosen.size===N)document.querySelector('#results').classList.add('show');
+  updateChips();busy=false;
+}
+function updateChips(){document.querySelector('#chips').innerHTML=[...chosen].sort((a,b)=>results[a]-results[b]).map(i=>'<span class="chip">발표 <b>'+(results[i]+1)+'번째</b> · '+teamName(i)+'</span>').join('')}
+const countSelect=document.querySelector('#teamCount');
+for(let count=2;count<=12;count++){const option=document.createElement('option');option.value=count;option.textContent=count+'팀';if(count===8)option.selected=true;countSelect.append(option)}
+countSelect.onchange=()=>{N=Number(countSelect.value);gap=(right-left)/(N-1);renderNameInputs();refreshSetup('팀 이름을 확인하고 사다리 그리기를 눌러주세요')};
+document.querySelector('#reset').onclick=render;
+document.querySelector('#all').onclick=async()=>{if(!ladderReady)return;for(let i=0;i<N;i++){if(!chosen.has(i)){await reveal(i)}}document.querySelector('#results').classList.add('show')};
+renderNameInputs();
+statusEl.textContent='사다리 그리기를 누르면 중간 선이 그려집니다';
+showFrame();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
